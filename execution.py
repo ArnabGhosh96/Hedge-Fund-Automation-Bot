@@ -102,6 +102,56 @@ def close_position(ticket_or_pos: Any) -> dict[str, Any]:
     return {"ticket": int(position.ticket), "deal": int(result.deal), "order": int(result.order), "price": float(result.price), "volume": float(position.volume), "retcode": int(result.retcode)}
 
 
+def modify_position_protection(ticket: int, stop_loss: float | None = None, take_profit: float | None = None) -> dict[str, Any]:
+    """Safely update broker-side SL/TP without allowing a stop or target to move backward."""
+    found = mt5.positions_get(ticket=int(ticket))
+    if not found:
+        raise RuntimeError(f"Position {ticket} not found or already closed")
+    position = found[0]
+    info = _symbol_info(position.symbol)
+    tick = mt5.symbol_info_tick(position.symbol)
+    if tick is None:
+        raise RuntimeError(f"No current tick for {position.symbol}")
+    is_buy = position.type == mt5.POSITION_TYPE_BUY
+    point = float(info.point or 0)
+    if point <= 0:
+        raise RuntimeError(f"Invalid point size for {position.symbol}")
+    # Include the broker's freeze distance to reduce avoidable modification rejections.
+    min_gap = max(int(getattr(info, "trade_stops_level", 0) or 0), int(getattr(info, "trade_freeze_level", 0) or 0)) * point
+    digits = int(info.digits)
+    current_sl, current_tp = float(position.sl or 0), float(position.tp or 0)
+    new_sl = round(float(stop_loss), digits) if stop_loss is not None else current_sl
+    new_tp = round(float(take_profit), digits) if take_profit is not None else current_tp
+    bid, ask = float(tick.bid), float(tick.ask)
+    if is_buy:
+        if new_sl and new_sl >= bid - min_gap:
+            raise ValueError(f"BUY stop must remain below bid by at least {min_gap} for {position.symbol}")
+        if new_tp and new_tp <= ask + min_gap:
+            raise ValueError(f"BUY target must remain above ask by at least {min_gap} for {position.symbol}")
+        if current_sl and new_sl < current_sl - point / 2:
+            raise ValueError("Refusing to loosen a BUY stop")
+        if current_tp and new_tp < current_tp - point / 2:
+            raise ValueError("Refusing to move a BUY target backward")
+    else:
+        if new_sl and new_sl <= ask + min_gap:
+            raise ValueError(f"SELL stop must remain above ask by at least {min_gap} for {position.symbol}")
+        if new_tp and new_tp >= bid - min_gap:
+            raise ValueError(f"SELL target must remain below bid by at least {min_gap} for {position.symbol}")
+        if current_sl and new_sl > current_sl + point / 2:
+            raise ValueError("Refusing to loosen a SELL stop")
+        if current_tp and new_tp > current_tp + point / 2:
+            raise ValueError("Refusing to move a SELL target backward")
+    if abs(new_sl - current_sl) < point / 2 and abs(new_tp - current_tp) < point / 2:
+        return {"ticket": int(ticket), "changed": False, "stop_loss": current_sl, "take_profit": current_tp}
+    request = {"action": mt5.TRADE_ACTION_SLTP, "symbol": position.symbol, "position": int(position.ticket), "sl": new_sl, "tp": new_tp}
+    result = mt5.order_send(request)
+    if result is None:
+        raise RuntimeError(f"MT5 protection update failed: {mt5.last_error()}")
+    if result.retcode not in {mt5.TRADE_RETCODE_DONE, getattr(mt5, "TRADE_RETCODE_NO_CHANGES", 10025)}:
+        raise RuntimeError(f"MT5 protection update rejected: retcode={result.retcode} comment={getattr(result, 'comment', '')}")
+    return {"ticket": int(ticket), "changed": result.retcode == mt5.TRADE_RETCODE_DONE, "stop_loss": new_sl, "take_profit": new_tp, "retcode": int(result.retcode)}
+
+
 def execute_trade(symbol: str, signal: str, stop_loss: float, take_profit: float, risk_percent: float) -> dict[str, Any]:
     signal = signal.upper()
     if signal not in {"BUY", "SELL"}:

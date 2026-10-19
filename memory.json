@@ -1,0 +1,477 @@
+[
+  {
+    "status": "CLOSED",
+    "created_at": "2026-10-19T13:28:07.557879+00:00",
+    "ticket": 996581970,
+    "deal": 1185187464,
+    "order": 996581970,
+    "position_id": 996581970,
+    "symbol": "USDJPY",
+    "side": "BUY",
+    "entry_price": 158.313,
+    "stop_loss": 158.119,
+    "take_profit": 158.579,
+    "volume": 0.93,
+    "risk_percent": 1.0,
+    "confidence": 66,
+    "logic": "H1 and Daily trends are UP; price is above both EMAs (H1 158.132, Daily 158.186). RSI is constructive but not overbought (H1 60.6, Daily 55.1). H1 ATR 0.153 was used to set stop ~1.2 ATR below live mid and target ~1.8 ATR above live mid. Low relative volume (H1 0.65, Daily 0.57) and a 2.4-pip spread cap conviction. No active learned rules matched, so no confidence deduction was applied.",
+    "market_context": {
+      "h1_atr": 0.1532115311680824,
+      "daily_atr": 0.9759685378809534,
+      "h1_relative_volume": 0.6544192644524426,
+      "daily_relative_volume": 0.5679750124852928,
+      "h1_tick_volume": 2791,
+      "daily_tick_volume": 73810,
+      "correlated_prices": {
+        "EURUSD": {
+          "bid": 1.12232,
+          "ask": 1.12252
+        },
+        "GBPUSD": {
+          "bid": 1.33273,
+          "ask": 1.33297
+        },
+        "USDCHF": {
+          "bid": 0.82432,
+          "ask": 0.82458
+        },
+        "USDCAD": {
+          "bid": 1.4090799999999999,
+          "ask": 1.40936
+        },
+        "AUDUSD": {
+          "bid": 0.69861,
+          "ask": 0.69885
+        },
+        "NZDUSD": {
+          "bid": 0.56706,
+          "ask": 0.56736
+        },
+        "BTCUSD": {
+          "bid": 82516.65,
+          "ask": 82556.65
+        }
+      }
+    },
+    "exit_deal": 1185194035,
+    "exit_price": 158.282,
+    "exit_time": "2026-10-19T16:32:25+00:00",
+    "realized_pnl": -18.21,
+    "outcome": "LOSS"
+  },
+  {
+    "status": "CLOSED",
+    "created_at": "2026-10-19T13:36:08.216688+00:00",
+    "ticket": 996598376,
+    "deal": 1185202291,
+    "order": 996598376,
+    "position_id": 996598376,
+    "symbol": "USDJPY",
+    "side": "BUY",
+    "entry_price": 158.346,
+    "stop_loss": 158.18,
+    "take_profit": 158.57,
+    "volume": 1.12,
+    "risk_percent": 1.0,
+    "confidence": 64,
+    "logic": "H1 and Daily trends are both UP; price is above both H1 EMA 158.132 and Daily EMA 158.187. RSI 62.8 H1 / 55.4 Daily is constructive, not overbought. H1 ATR 0.153 supports a stop ~1.05 ATR below live mid 158.342 and target ~1.5 ATR above, giving ~1.4:1 reward/risk. Spread 0.026 is ~17% of H1 ATR, acceptable but not tight, and relative volume is soft, so confidence is moderate. No active learned rules matched, so no confidence deduction applied.",
+    "market_context": {
+      "h1_atr": 0.1532115311680824,
+      "daily_atr": 0.9759685378809534,
+      "h1_relative_volume": 0.9115517201489947,
+      "daily_relative_volume": 0.5765617891190971,
+      "h1_tick_volume": 3940,
+      "daily_tick_volume": 74959,
+      "correlated_prices": {
+        "EURUSD": {
+          "bid": 1.12207,
+          "ask": 1.12228
+        },
+        "GBPUSD": {
+          "bid": 1.33219,
+          "ask": 1.33242
+        },
+        "USDCHF": {
+          "bid": 0.82469,
+          "ask": 0.82494
+        },
+        "USDCAD": {
+          "bid": 1.4101,
+          "ask": 1.41039
+        },
+        "AUDUSD": {
+          "bid": 0.6982,
+          "ask": 0.69843
+        },
+        "NZDUSD": {
+          "bid": 0.56665,
+          "ask": 0.56694
+        },
+        "BTCUSD": {
+          "bid": 82338.75,
+          "ask": 82378.75
+        },
+        "GOLD": {
+          "bid": 4159.2,
+          "ask": 4159.75
+        },
+        "USDCNH": {
+          "bid": 6.6793,
+          "ask": 6.6833
+        },
+        "USDSEK": {
+          "bid": 9.88801,
+          "ask": 9.90279
+        },
+        "ETHUSD": {
+          "bid": 2412.14,
+          "ask": 2415.14
+        },
+        "XAUEUR": {
+          "bid": 3706.29,
+          "ask": 3707.09
+        }
+      }
+    },
+    "exit_deal": 1185512328,
+    "exit_deals": [
+      1185512328
+    ],
+    "exit_price": 158.47,
+    "exit_time": "2026-10-19T21:12:29+00:00",
+    "realized_pnl": 87.64,
+    "outcome": "WIN"
+  },
+  {
+    "status": "CLOSED",
+    "created_at": "2026-10-19T13:43:45.783193+00:00",
+    "ticket": 996623348,
+    "deal": 1185225987,
+    "order": 996623348,
+    "position_id": 996623348,
+    "symbol": "GOLD",
+    "side": "SELL",
+    "entry_price": 4151.57,
+    "stop_loss": 4170.68,
+    "take_profit": 4123.83,
+    "volume": 0.05,
+    "risk_percent": 1.0,
+    "confidence": 60,
+    "logic": "H1 and Daily trends are DOWN; close 4150.33 is below H1 EMA 4156.98 and far below Daily EMA 4347.61, with H1 RSI 36.67 and Daily RSI 43.89 supporting bearish momentum. H1 relative volume 1.18 is elevated, spread 0.54 is normal, so execution is acceptable. Confidence is capped because price is near H1 10-bar low 4149.74 (support/bounce risk) and Daily relative volume 0.65 is low. Active rules list is empty; no learned setup condition matched, so no confidence-reduction points applied. Stop at mid plus ~1.5x H1 ATR (4150.60+20.08=4170.68), target at mid minus ~2.0x H1 ATR (4150.60-26.77=4123.83).",
+    "market_context": {
+      "h1_atr": 13.387083098812754,
+      "daily_atr": 77.44546967188778,
+      "h1_relative_volume": 1.1831949712224492,
+      "daily_relative_volume": 0.654630628982259,
+      "h1_tick_volume": 13383,
+      "daily_tick_volume": 180322,
+      "correlated_prices": {
+        "EURUSD": {
+          "bid": 1.12166,
+          "ask": 1.12188
+        },
+        "GBPUSD": {
+          "bid": 1.33189,
+          "ask": 1.33215
+        },
+        "USDJPY": {
+          "bid": 158.378,
+          "ask": 158.401
+        },
+        "USDCHF": {
+          "bid": 0.82527,
+          "ask": 0.82553
+        },
+        "USDCAD": {
+          "bid": 1.41096,
+          "ask": 1.41124
+        },
+        "AUDUSD": {
+          "bid": 0.69798,
+          "ask": 0.69821
+        },
+        "NZDUSD": {
+          "bid": 0.56633,
+          "ask": 0.56662
+        },
+        "BTCUSD": {
+          "bid": 82354.85,
+          "ask": 82394.85
+        },
+        "USDCNH": {
+          "bid": 6.6796,
+          "ask": 6.6836
+        },
+        "USDSEK": {
+          "bid": 9.896889999999999,
+          "ask": 9.91151
+        },
+        "ETHUSD": {
+          "bid": 2413.14,
+          "ask": 2416.14
+        },
+        "XAUEUR": {
+          "bid": 3699.63,
+          "ask": 3700.43
+        }
+      }
+    },
+    "exit_deal": 1185512281,
+    "exit_deals": [
+      1185512281
+    ],
+    "exit_price": 4147.84,
+    "exit_time": "2026-10-19T21:12:26+00:00",
+    "realized_pnl": 18.65,
+    "outcome": "WIN"
+  },
+  {
+    "status": "CLOSED",
+    "created_at": "2026-10-19T13:49:11.268465+00:00",
+    "ticket": 996645562,
+    "deal": 1185246694,
+    "order": 996645562,
+    "position_id": 996645562,
+    "symbol": "XAUEUR",
+    "side": "SELL",
+    "entry_price": 3697.28,
+    "stop_loss": 3715.2,
+    "take_profit": 3672.5,
+    "volume": 0.05,
+    "risk_percent": 1.0,
+    "confidence": 64,
+    "logic": "H1 and Daily trends are both DOWN, with price 3697.66 mid below H1 EMA 3707.39 and Daily EMA 3770.20. H1 RSI 36.7 is weak, 10-bar H1 change is -26.98, and H1 relative volume 1.36 supports downside momentum. Daily RSI 46.9 is neutral and price is near H1 low 3693.14, limiting conviction. Spread 0.80 is acceptable vs H1 ATR 11.54. No active rules matched, so no confidence deduction applied. Stop is ~1.5x H1 ATR above mid; target is ~2.2x H1 ATR below mid.",
+    "market_context": {
+      "h1_atr": 11.539001441095136,
+      "daily_atr": 61.99998840266185,
+      "h1_relative_volume": 1.3579603895393368,
+      "daily_relative_volume": 0.6159903253639878,
+      "h1_tick_volume": 15513,
+      "daily_tick_volume": 181334,
+      "correlated_prices": {
+        "EURUSD": {
+          "bid": 1.12212,
+          "ask": 1.12232
+        },
+        "GBPUSD": {
+          "bid": 1.3323,
+          "ask": 1.33255
+        },
+        "USDJPY": {
+          "bid": 158.374,
+          "ask": 158.399
+        },
+        "USDCHF": {
+          "bid": 0.82499,
+          "ask": 0.82525
+        },
+        "USDCAD": {
+          "bid": 1.41045,
+          "ask": 1.41074
+        },
+        "AUDUSD": {
+          "bid": 0.69833,
+          "ask": 0.69857
+        },
+        "NZDUSD": {
+          "bid": 0.56684,
+          "ask": 0.56714
+        },
+        "BTCUSD": {
+          "bid": 82378.45,
+          "ask": 82418.45
+        },
+        "GOLD": {
+          "bid": 4149.49,
+          "ask": 4149.89
+        },
+        "USDCNH": {
+          "bid": 6.6794,
+          "ask": 6.6833
+        },
+        "USDSEK": {
+          "bid": 9.88865,
+          "ask": 9.90353
+        },
+        "ETHUSD": {
+          "bid": 2412.06,
+          "ask": 2415.06
+        }
+      }
+    },
+    "exit_deal": 1185512240,
+    "exit_deals": [
+      1185512240
+    ],
+    "exit_price": 3698.21,
+    "exit_time": "2026-10-19T21:12:22+00:00",
+    "realized_pnl": -5.22,
+    "outcome": "LOSS"
+  },
+  {
+    "status": "CLOSED",
+    "created_at": "2026-10-19T18:12:28.709591+00:00",
+    "ticket": 996938541,
+    "deal": 1185512297,
+    "order": 996938541,
+    "position_id": 996938541,
+    "symbol": "GOLD",
+    "side": "SELL",
+    "entry_price": 4147.17,
+    "stop_loss": 4160.0,
+    "take_profit": 4123.6,
+    "volume": 0.08,
+    "risk_percent": 1.0,
+    "confidence": 57,
+    "logic": "H1 and Daily trends are DOWN; price is below H1 EMA 4156.79 and far below Daily EMA 4347.58, with RSI 38.6/43.7 confirming weak momentum. H1 relative volume 0.19 is very thin, so conviction is reduced, but spread 0.53 is acceptable versus H1 ATR 12.1. Active rules are empty, so no learned-rule confidence deduction applies. Sell stop 4160.00 is about 1 H1 ATR above mid; target 4123.60 is about 2 H1 ATR below mid, giving roughly 2:1 reward/risk.",
+    "market_context": {
+      "h1_atr": 12.105310010784093,
+      "daily_atr": 78.38618395760206,
+      "h1_relative_volume": 0.18897664557956945,
+      "daily_relative_volume": 0.8685480984332014,
+      "h1_tick_volume": 2224,
+      "daily_tick_volume": 241922,
+      "correlated_prices": {
+        "EURUSD": {
+          "bid": 1.12154,
+          "ask": 1.12175
+        },
+        "GBPUSD": {
+          "bid": 1.33083,
+          "ask": 1.33107
+        },
+        "USDJPY": {
+          "bid": 158.467,
+          "ask": 158.492
+        },
+        "USDCHF": {
+          "bid": 0.8258,
+          "ask": 0.82606
+        },
+        "USDCAD": {
+          "bid": 1.40975,
+          "ask": 1.41004
+        },
+        "AUDUSD": {
+          "bid": 0.69804,
+          "ask": 0.69828
+        },
+        "NZDUSD": {
+          "bid": 0.56636,
+          "ask": 0.56666
+        },
+        "BTCUSD": {
+          "bid": 82050.65,
+          "ask": 82090.65
+        },
+        "USDCNH": {
+          "bid": 6.6804,
+          "ask": 6.6844
+        },
+        "USDSEK": {
+          "bid": 9.90587,
+          "ask": 9.92083
+        },
+        "ETHUSD": {
+          "bid": 2401.93,
+          "ask": 2404.93
+        },
+        "XAUEUR": {
+          "bid": 3697.56,
+          "ask": 3698.36
+        }
+      }
+    },
+    "exit_deal": 1185512405,
+    "exit_deals": [
+      1185512405
+    ],
+    "exit_price": 4147.59,
+    "exit_time": "2026-10-19T21:12:47+00:00",
+    "realized_pnl": -3.36,
+    "outcome": "LOSS"
+  },
+  {
+    "status": "CLOSED",
+    "created_at": "2026-10-19T18:43:03.649527+00:00",
+    "ticket": 996955799,
+    "deal": 1185527867,
+    "order": 996955799,
+    "position_id": 996955799,
+    "symbol": "GOLD",
+    "side": "SELL",
+    "entry_price": 4145.33,
+    "stop_loss": 4158.9,
+    "take_profit": 4127.2,
+    "volume": 0.07,
+    "risk_percent": 1.0,
+    "confidence": 63,
+    "logic": "H1 and Daily trends are DOWN; price 4145.33 is below H1 EMA 4156.77 and far below Daily EMA 4347.56. H1 RSI 36.46 is weak but not deeply oversold, and low relative volume 0.59 reduces conviction, so confidence is moderate. Sell continuation with stop above H1 EMA (~4158.90) and target below H1 10-bar low 4136.57 (~4127.20). Active rules list is empty, so no learned-rule confidence reduction applies.",
+    "market_context": {
+      "h1_atr": 12.249595725069838,
+      "daily_atr": 78.38618395760206,
+      "h1_relative_volume": 0.5905687158418768,
+      "daily_relative_volume": 0.8852584622404223,
+      "h1_tick_volume": 7094,
+      "daily_tick_volume": 246792,
+      "correlated_prices": {
+        "EURUSD": {
+          "bid": 1.12101,
+          "ask": 1.12122
+        },
+        "GBPUSD": {
+          "bid": 1.33009,
+          "ask": 1.33034
+        },
+        "USDJPY": {
+          "bid": 158.501,
+          "ask": 158.524
+        },
+        "USDCHF": {
+          "bid": 0.82652,
+          "ask": 0.82678
+        },
+        "USDCAD": {
+          "bid": 1.41072,
+          "ask": 1.41099
+        },
+        "AUDUSD": {
+          "bid": 0.69771,
+          "ask": 0.69795
+        },
+        "NZDUSD": {
+          "bid": 0.56593,
+          "ask": 0.56624
+        },
+        "BTCUSD": {
+          "bid": 81916.55,
+          "ask": 81956.55
+        },
+        "USDCNH": {
+          "bid": 6.6808,
+          "ask": 6.6848
+        },
+        "USDSEK": {
+          "bid": 9.91219,
+          "ask": 9.92701
+        },
+        "ETHUSD": {
+          "bid": 2399.36,
+          "ask": 2402.36
+        },
+        "XAUEUR": {
+          "bid": 3697.31,
+          "ask": 3698.11
+        }
+      }
+    },
+    "exit_deal": 1185528946,
+    "exit_deals": [
+      1185528946
+    ],
+    "exit_price": 4147.05,
+    "exit_time": "2026-10-19T21:45:43+00:00",
+    "realized_pnl": -12.04,
+    "outcome": "LOSS"
+  }
+]

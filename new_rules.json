@@ -1,0 +1,114 @@
+{
+  "rules": [
+    {
+      "affected_symbol": "ALL",
+      "setup": "Low-volume breakdown/breakout continuation: H1 relative volume < 0.70 and daily relative volume < 0.90 at entry",
+      "confidence_reduction_points": 20,
+      "sample_size": 4,
+      "evidence": "4/5 losing trades met this: USDJPY 0.654/0.568, GOLD 0.189/0.869, GOLD 0.591/0.885, EURAUD 0.180/0.862; largest loss EURAUD -134.94 at H1 relative volume 0.180.",
+      "active": true,
+      "created_at": "2026-10-19T21:00:08.154050+00:00"
+    },
+    {
+      "affected_symbol": "ALL",
+      "setup": "Entry taken when h1_relative_volume < 0.7 and daily_relative_volume < 1.0, indicating a low-volume environment.",
+      "confidence_reduction_points": 18,
+      "sample_size": 4,
+      "evidence": "4/5 losing trades matched: USDJPY h1/daily rel vol 0.654/0.568; GOLD 0.189/0.869; GOLD 0.591/0.885; EURAUD 0.180/0.862.",
+      "active": true,
+      "created_at": "2026-10-20T01:05:02.153548+00:00"
+    },
+    {
+      "affected_symbol": "GOLD",
+      "setup": "SELL entry when h1_relative_volume < 1.0 and daily_relative_volume < 1.0.",
+      "confidence_reduction_points": 15,
+      "sample_size": 2,
+      "evidence": "Both supplied GOLD SELL trades lost; h1 relative volume 0.189 and 0.591, daily relative volume 0.869 and 0.885.",
+      "active": true,
+      "created_at": "2026-10-20T01:05:02.153548+00:00"
+    },
+    {
+      "affected_symbol": "ALL",
+      "setup": "SELL entry in GOLD or XAUEUR when daily_ATR/entry >= 1.6% and daily_relative_volume < 1.0, indicating elevated daily ATR with below-average daily volume.",
+      "confidence_reduction_points": 20,
+      "sample_size": 3,
+      "evidence": "All three gold-related SELL losses matched: XAUEUR daily ATR 61.999/3697.28 ≈ 1.68%, daily rel vol 0.616; GOLD daily ATR 78.386/4147.17 ≈ 1.89%, daily rel vol 0.869; GOLD daily ATR 78.386/4145.33 ≈ 1.89%, daily rel vol 0.885.",
+      "active": true,
+      "created_at": "2026-10-20T01:05:02.153548+00:00"
+    },
+    {
+      "affected_symbol": "ALL",
+      "setup": "SELL entries when h1_relative_volume < 0.70 and daily_relative_volume < 1.0, indicating thin intraday participation on short-side breakdown attempts",
+      "confidence_reduction_points": 20,
+      "sample_size": 3,
+      "evidence": "3 losing SELL trades matched: GOLD h1_relative_volume 0.189 and 0.591, daily_relative_volume 0.869 and 0.885, losses -3.36 and -12.04; EURAUD h1_relative_volume 0.180, daily_relative_volume 0.862, loss -134.94.",
+      "active": true,
+      "created_at": "2026-10-20T01:15:59.141842+00:00"
+    },
+    {
+      "affected_symbol": "ALL",
+      "setup": "Entry when h1_relative_volume < 0.60",
+      "confidence_reduction_points": 20,
+      "sample_size": 4,
+      "evidence": "4/6 losing trades had H1 relative volume below 0.60; largest losses were EURAUD (-134.94 at 0.180) and USDJPY (-115.62 at 0.225).",
+      "active": true,
+      "created_at": "2026-10-20T02:29:44.149709+00:00"
+    },
+    {
+      "affected_symbol": "ALL",
+      "setup": "Entry when h1_atr / daily_atr < 0.20 (compressed H1 volatility vs daily range)",
+      "confidence_reduction_points": 15,
+      "sample_size": 6,
+      "evidence": "All 6 losing trades had H1 ATR between 13% and 19% of daily ATR (ratios 0.132-0.186).",
+      "active": true,
+      "created_at": "2026-10-20T02:29:44.149709+00:00"
+    },
+    {
+      "affected_symbol": "ALL",
+      "setup": "Breakout/breakdown entry when h1_relative_volume < 0.25",
+      "confidence_reduction_points": 22,
+      "sample_size": 3,
+      "evidence": "3 of 6 losing trades had h1_relative_volume below 0.25: GOLD SELL 0.189, USDJPY BUY 0.225, EURAUD SELL 0.180; all closed adverse to entry.",
+      "active": true,
+      "created_at": "2026-10-20T05:59:44.690458+00:00"
+    },
+    {
+      "affected_symbol": "GOLD",
+      "setup": "SELL when h1_relative_volume < 0.60 while EURUSD < 1.1220 and USDJPY > 158.45",
+      "confidence_reduction_points": 18,
+      "sample_size": 2,
+      "evidence": "Both GOLD SELL losses met this backdrop: h1_relative_volume 0.189/0.591, EURUSD 1.12154/1.12101, USDJPY 158.467/158.501; both exited above entry.",
+      "active": true,
+      "created_at": "2026-10-20T05:59:44.690458+00:00"
+    },
+    {
+      "affected_symbol": "USDJPY",
+      "setup": "BUY when h1_relative_volume < 0.70",
+      "confidence_reduction_points": 15,
+      "sample_size": 2,
+      "evidence": "Both USDJPY BUY losses had h1_relative_volume 0.654 and 0.225; both exited below entry.",
+      "active": true,
+      "created_at": "2026-10-20T05:59:44.690458+00:00"
+    },
+    {
+      "affected_symbol": "ALL",
+      "setup": "Directional entry taken when h1_relative_volume < 0.25 (thin H1 participation); all supplied qualifying entries failed",
+      "confidence_reduction_points": 20,
+      "sample_size": 3,
+      "evidence": "GOLD SELL h1_relative_volume 0.189 (PNL -3.36), USDJPY BUY 0.225 (-115.62), EURAUD SELL 0.180 (-134.94); all exited against entry.",
+      "active": true,
+      "created_at": "2026-10-20T06:00:08.890243+00:00"
+    },
+    {
+      "affected_symbol": "GOLD",
+      "setup": "SELL GOLD when h1_ATR is ~12.1-12.3 and daily_ATR is ~78.4 (high absolute daily-volatility regime); both supplied GOLD shorts failed",
+      "confidence_reduction_points": 15,
+      "sample_size": 2,
+      "evidence": "Both GOLD SELLs had daily_ATR 78.386 and h1_ATR 12.105/12.250; exits 4147.59 and 4147.05 were above entries 4147.17 and 4145.33.",
+      "active": true,
+      "created_at": "2026-10-20T06:00:08.890243+00:00"
+    }
+  ],
+  "last_audit_at": "2026-10-20T06:00:08.890243+00:00",
+  "trades_analyzed": 12
+}

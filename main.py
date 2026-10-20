@@ -27,7 +27,7 @@ bot_state: dict[str, Any] = {"is_running": False, "interval": config.SCAN_INTERV
     "equity": 0.0, "last_logic": "Waiting for scan", "last_confidence": 0, "last_signal": "HOLD", "last_entry_price": None,
     "last_stop_loss": None, "last_take_profit": None, "trade_history": [], "open_positions": [], "learned_rules": [], "last_audit_at": None,
     "last_symbol": None, "last_scan_at": None, "last_error": None, "reconciled_count": 0}
-bot_state.update(last_exit_logic="Position manager is monitoring open MT5 positions.", last_exit_review_at=None)
+bot_state.update(last_exit_logic="Position manager is monitoring open MT5 positions.", last_exit_review_at=None, exit_reviews=[])
 bot_state.update(exit_confidence_threshold=config.EXIT_CONFIDENCE_THRESHOLD, trail_activate_atr=config.TRAIL_ACTIVATE_ATR,
                  trail_distance_atr=config.TRAIL_DISTANCE_ATR, exit_ai_review_seconds=config.EXIT_AI_REVIEW_SECONDS,
                  position_monitor_interval=config.POSITION_MONITOR_INTERVAL_SECONDS)
@@ -36,6 +36,7 @@ _audit_lock = asyncio.Lock()
 _reconcile_lock = asyncio.Lock()
 _loop_wakeup = asyncio.Event()
 _last_exit_ai_review: dict[int, float] = {}
+_exit_reviews_by_ticket: dict[int, dict[str, Any]] = {}
 _next_entry_scan = 0.0
 _next_position_check = 0.0
 _last_reconcile_monotonic = 0.0
@@ -53,6 +54,23 @@ class CloseRequest(BaseModel):
 
 class AuditRequest(BaseModel):
     force: bool = False
+
+
+def _record_exit_review(position: Any, action: str, confidence: int | None, logic: str,
+                        stop_loss: float | None = None, take_profit: float | None = None,
+                        reviewed_at: str | None = None) -> None:
+    ticket = int(position.ticket)
+    previous = _exit_reviews_by_ticket.get(ticket, {})
+    _exit_reviews_by_ticket[ticket] = {
+        "ticket": ticket, "symbol": str(position.symbol),
+        "side": "BUY" if int(position.type) == 0 else "SELL",
+        "action": action, "confidence_score": confidence, "logic": logic,
+        "stop_loss": stop_loss if stop_loss is not None else (float(position.sl) if position.sl else None),
+        "take_profit": take_profit if take_profit is not None else (float(position.tp) if position.tp else None),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "last_reviewed_at": reviewed_at or previous.get("last_reviewed_at"),
+    }
+    bot_state["exit_reviews"] = sorted(_exit_reviews_by_ticket.values(), key=lambda row: (row["symbol"], row["ticket"]))
 
 
 def _read_mt5_snapshot() -> tuple[float | None, list[dict[str, Any]]]:
@@ -73,6 +91,23 @@ async def _refresh_state() -> None:
     except Exception as exc:
         bot_state["last_error"] = str(exc)
     bot_state["trade_history"] = load_trade_memory()[-100:]
+    for position in bot_state.get("open_positions", []):
+        ticket = int(position["ticket"])
+        if ticket in _exit_reviews_by_ticket:
+            continue
+        matching = next((record for record in reversed(bot_state["trade_history"])
+                         if ticket in {int(record.get(key) or 0) for key in ("position_id", "ticket", "order")}), None)
+        events = matching.get("management_events", []) if matching else []
+        previous = next((event for event in reversed(events) if event.get("action") == "AI_REVIEW"), None)
+        if previous:
+            _exit_reviews_by_ticket[ticket] = {
+                "ticket": ticket, "symbol": position["symbol"], "side": position["side"],
+                "action": previous.get("decision_action", "HOLD"),
+                "confidence_score": previous.get("confidence"), "logic": previous.get("reason", ""),
+                "stop_loss": position.get("sl"), "take_profit": position.get("tp"),
+                "updated_at": previous.get("at"), "last_reviewed_at": previous.get("at"),
+            }
+    bot_state["exit_reviews"] = sorted(_exit_reviews_by_ticket.values(), key=lambda row: (row["symbol"], row["ticket"]))
     doc = load_rules_document()
     bot_state["learned_rules"] = doc["rules"]
     bot_state["last_audit_at"] = doc.get("last_audit_at")
@@ -147,21 +182,30 @@ async def _manage_open_positions() -> None:
         return
     if not positions:
         _last_exit_ai_review.clear()
+        _exit_reviews_by_ticket.clear()
+        bot_state["exit_reviews"] = []
         bot_state["last_exit_logic"] = "No open positions to manage."
         return
     try:
         import MetaTrader5 as mt5
     except ImportError:
         bot_state["last_exit_logic"] = "MT5 API unavailable; broker-side SL/TP remains the only protection."
+        for position in positions:
+            _record_exit_review(position, "ERROR", None, bot_state["last_exit_logic"])
         return
 
     live_tickets = {int(p.ticket) for p in positions}
     for stale_ticket in set(_last_exit_ai_review) - live_tickets:
         _last_exit_ai_review.pop(stale_ticket, None)
+    for stale_ticket in set(_exit_reviews_by_ticket) - live_tickets:
+        _exit_reviews_by_ticket.pop(stale_ticket, None)
+    bot_state["exit_reviews"] = sorted(_exit_reviews_by_ticket.values(), key=lambda row: (row["symbol"], row["ticket"]))
 
     for position in positions:
         ticket, symbol = int(position.ticket), str(position.symbol)
         side = "BUY" if position.type == mt5.POSITION_TYPE_BUY else "SELL"
+        if ticket not in _exit_reviews_by_ticket:
+            _record_exit_review(position, "MONITORING", None, "No AI review is recorded yet; waiting for the first review.")
         try:
             market = await asyncio.to_thread(fetch_multi_timeframe_data, symbol)
             bid, ask = float(market["bid"]), float(market["ask"])
@@ -169,7 +213,9 @@ async def _manage_open_positions() -> None:
             entry = float(position.price_open)
             current_sl, current_tp = float(position.sl or 0), float(position.tp or 0)
             if atr <= 0 or not (bid > 0 and ask >= bid):
-                bot_state["last_exit_logic"] = f"{symbol} #{ticket}: invalid quote/ATR; keeping existing broker protection."
+                message = f"Invalid quote/ATR; keeping existing broker protection."
+                bot_state["last_exit_logic"] = f"{symbol} #{ticket}: {message}"
+                _record_exit_review(position, "MONITORING", None, message)
                 continue
 
             is_buy = side == "BUY"
@@ -194,12 +240,14 @@ async def _manage_open_positions() -> None:
                 result = await asyncio.to_thread(close_position, position)
                 append_management_event(ticket, {"action": "CLOSE", "reason": reason, "deal": result["deal"], "price": result["price"]})
                 bot_state["last_exit_logic"] = f"{symbol} #{ticket}: closed because an unprotected position crossed its {reason.split()[-1]} level."
+                _record_exit_review(position, "CLOSED", None, reason, planned_sl, planned_tp)
                 log.info("[TRADE] Closed %s #%s: %s", symbol, ticket, reason)
                 continue
 
             now = time.monotonic()
             ai_decision = {"action": "HOLD", "confidence_score": 0, "stop_loss": None, "take_profit": None,
                            "logic": "AI review interval not due; ATR protection checked."}
+            review_was_run = False
             if now - _last_exit_ai_review.get(ticket, 0.0) >= config.EXIT_AI_REVIEW_SECONDS:
                 position_data = {"ticket": ticket, "symbol": symbol, "side": side, "volume": float(position.volume),
                     "entry_price": entry, "current_price": market_price, "bid": bid, "ask": ask, "floating_profit": float(position.profit),
@@ -207,8 +255,24 @@ async def _manage_open_positions() -> None:
                     "favorable_move_atr": favorable / atr}
                 ai_decision = await asyncio.to_thread(get_ai_exit_decision, position_data, market)
                 _last_exit_ai_review[ticket] = now
+                review_was_run = True
                 bot_state["last_exit_review_at"] = datetime.now(timezone.utc).isoformat()
+                ai_decision["reviewed_at"] = bot_state["last_exit_review_at"]
                 bot_state["last_exit_logic"] = f"{symbol} #{ticket} {ai_decision['action']} ({ai_decision['confidence_score']}%): {ai_decision['logic']}"
+                append_management_event(ticket, {"action": "AI_REVIEW", "decision_action": ai_decision["action"],
+                    "confidence": ai_decision["confidence_score"], "reason": ai_decision["logic"]})
+
+            if not review_was_run:
+                previous_review = _exit_reviews_by_ticket.get(ticket, {})
+                ai_decision["display_action"] = previous_review.get("action", "MONITORING")
+                ai_decision["display_confidence"] = previous_review.get("confidence_score")
+                ai_decision["display_logic"] = previous_review.get("logic", "No AI review is recorded yet; waiting for the first review.")
+            else:
+                ai_decision["display_action"] = ai_decision["action"]
+                ai_decision["display_confidence"] = ai_decision["confidence_score"]
+                ai_decision["display_logic"] = ai_decision["logic"]
+                _record_exit_review(position, ai_decision["action"], ai_decision["confidence_score"],
+                                    ai_decision["logic"], planned_sl, planned_tp, ai_decision.get("reviewed_at"))
 
             if ai_decision["action"] == "CLOSE" and ai_decision["confidence_score"] >= config.EXIT_CONFIDENCE_THRESHOLD:
                 result = await asyncio.to_thread(close_position, position)
@@ -216,6 +280,7 @@ async def _manage_open_positions() -> None:
                     "reason": ai_decision["logic"], "deal": result["deal"], "price": result["price"]})
                 log.info("[TRADE] [AI EXIT] Closed %s #%s at %s: %s", symbol, ticket, result["price"], ai_decision["logic"])
                 bot_state["last_exit_logic"] = f"{symbol} #{ticket}: closed by AI risk review ({ai_decision['confidence_score']}%). {ai_decision['logic']}"
+                _record_exit_review(position, "CLOSED", ai_decision["confidence_score"], ai_decision["logic"], planned_sl, planned_tp)
                 continue
 
             if ai_decision["action"] == "UPDATE" and ai_decision["confidence_score"] >= config.EXIT_CONFIDENCE_THRESHOLD:
@@ -235,8 +300,16 @@ async def _manage_open_positions() -> None:
                     "ai_confidence": ai_decision["confidence_score"], "reason": ai_decision["logic"]})
                 log.info("[TRADE] [EXIT MANAGER] %s #%s SL=%s TP=%s", symbol, ticket, changed["stop_loss"], changed["take_profit"])
                 bot_state["last_exit_logic"] = f"{symbol} #{ticket}: protection updated. SL {changed['stop_loss']}, TP {changed['take_profit']}. {ai_decision['logic']}"
+            _record_exit_review(position, ai_decision["display_action"], ai_decision["display_confidence"],
+                                ai_decision["display_logic"], planned_sl, planned_tp, ai_decision.get("reviewed_at"))
         except Exception as exc:
             bot_state["last_exit_logic"] = f"{symbol} #{ticket}: exit review/update failed; existing broker SL/TP remain in place. {exc}"
+            previous_review = _exit_reviews_by_ticket.get(ticket)
+            if previous_review and previous_review.get("confidence_score") is not None:
+                _record_exit_review(position, previous_review["action"], previous_review["confidence_score"],
+                                    f"{previous_review['logic']} Latest position check failed: {exc}")
+            else:
+                _record_exit_review(position, "ERROR", None, f"Exit review/update failed; existing broker protection remains in place. {exc}")
             log.warning("[TRADE] Exit management failed for %s #%s: %s", symbol, ticket, exc)
 
 

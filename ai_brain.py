@@ -58,38 +58,3 @@ def get_ai_decision(market_data: dict[str, Any], symbol: str) -> dict[str, Any]:
     except (requests.RequestException, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         log.exception("[AI] DeepSeek decision failed for %s", symbol)
         return _fallback_hold(market_data, f"AI decision unavailable: {exc}")
-
-
-def get_ai_exit_decision(position: dict[str, Any], market_data: dict[str, Any]) -> dict[str, Any]:
-    """Ask the model for a constrained open-position action. Safety checks are enforced by execution.py."""
-    hold = {"action": "HOLD", "confidence_score": 0, "stop_loss": None, "take_profit": None,
-            "logic": "Exit review unavailable; keep broker-side protection and ATR trailing."}
-    if not config.DEEPSEEK_API_KEY:
-        hold["logic"] = "DeepSeek API key missing; keep existing protection and ATR trailing."
-        return hold
-    system = '''You are a conservative institutional risk manager reviewing an ALREADY OPEN MT5 position. Return raw JSON only with exactly these fields: {"action":"HOLD"|"CLOSE"|"UPDATE","confidence_score":0-100 integer,"stop_loss":number|null,"take_profit":number|null,"logic":"concise evidence-based explanation"}. Use CLOSE only when the current evidence clearly invalidates the position or a material adverse risk is emerging; do not close merely due to normal noise. Use UPDATE only when a concrete market-structure/volatility change warrants a tighter protective stop or a more favorable (farther in profit direction) target. Never recommend a stop farther from market or farther from entry than the current stop; never widen the original risk. For BUY, an updated stop must be above the existing stop and below bid, and an extended target must be above the existing target. For SELL, an updated stop must be below the existing stop and above ask, and an extended target must be below the existing target. Do not use CLOSE/UPDATE on incomplete or ambiguous data; choose HOLD. This is a risk review, not an entry recommendation.'''
-    try:
-        response = requests.post(f"{config.DEEPSEEK_API_BASE}/chat/completions", headers={"Authorization": f"Bearer {config.DEEPSEEK_API_KEY}"},
-                                 json={"model": config.DEEPSEEK_MODEL, "temperature": 0.1,
-                                       "messages": [{"role": "system", "content": system},
-                                                    {"role": "user", "content": "Review this open position and current market snapshot: " + json.dumps({"position": position, "market": market_data}, allow_nan=False)}]},
-                                 timeout=(5, 30))
-        response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"].strip()
-        if content.startswith("```"):
-            content = content.strip("`").removeprefix("json").strip()
-        data = json.loads(content)
-        action = str(data.get("action", "HOLD")).upper()
-        confidence = data.get("confidence_score")
-        if action not in {"HOLD", "CLOSE", "UPDATE"} or isinstance(confidence, bool) or not isinstance(confidence, int) or not 0 <= confidence <= 100:
-            raise ValueError("Exit decision action/confidence is invalid")
-        sl = float(data["stop_loss"]) if data.get("stop_loss") is not None else None
-        tp = float(data["take_profit"]) if data.get("take_profit") is not None else None
-        if (sl is not None and not math.isfinite(sl)) or (tp is not None and not math.isfinite(tp)):
-            raise ValueError("Exit decision contains a non-finite price")
-        return {"action": action, "confidence_score": confidence, "stop_loss": sl, "take_profit": tp,
-                "logic": str(data.get("logic", ""))[:1500]}
-    except (requests.RequestException, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
-        log.exception("[AI] Exit review failed for ticket %s", position.get("ticket"))
-        hold["logic"] = f"Exit review failed; deterministic ATR protection remains active: {exc}"
-        return hold

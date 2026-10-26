@@ -97,9 +97,46 @@ def close_position(ticket_or_pos: Any) -> dict[str, Any]:
     order_type = mt5.ORDER_TYPE_SELL if is_buy else mt5.ORDER_TYPE_BUY
     price = float(tick.bid if is_buy else tick.ask)
     request = {"action": mt5.TRADE_ACTION_DEAL, "symbol": position.symbol, "position": position.ticket, "volume": float(position.volume),
-               "type": order_type, "price": price, "deviation": 20, "magic": 260019, "comment": "Autonomous risk close", "type_time": mt5.ORDER_TIME_GTC}
+               "type": order_type, "price": price, "deviation": 20, "magic": config.BOT_MAGIC, "comment": "Autonomous risk close", "type_time": mt5.ORDER_TIME_GTC}
     result = _send_with_fill_fallback(request, info)
     return {"ticket": int(position.ticket), "deal": int(result.deal), "order": int(result.order), "price": float(result.price), "volume": float(position.volume), "retcode": int(result.retcode)}
+
+
+def position_tick_prices(symbol: str) -> dict[str, float]:
+    """Current bid/ask for one symbol, for stop-management math."""
+    tick = mt5.symbol_info_tick(symbol)
+    if tick is None:
+        raise RuntimeError(f"No tick for {symbol}: {mt5.last_error()}")
+    return {"bid": float(tick.bid), "ask": float(tick.ask)}
+
+
+def modify_position_stop(position: Any, new_sl: float) -> None:
+    """Tighten an open position's stop (keeps its TP); price rounded to the symbol's digits."""
+    info = _symbol_info(position.symbol)
+    digits = int(getattr(info, "digits", 5) or 5)
+    request = {"action": mt5.TRADE_ACTION_SLTP, "position": int(position.ticket), "symbol": position.symbol,
+               "sl": round(float(new_sl), digits), "tp": float(position.tp)}
+    result = mt5.order_send(request)
+    if result is None:
+        raise RuntimeError(f"SLTP modify failed for #{position.ticket} {position.symbol}: {mt5.last_error()}")
+    if int(getattr(result, "retcode", 0)) != mt5.TRADE_RETCODE_DONE:
+        raise RuntimeError(f"SLTP modify rejected for #{position.ticket} {position.symbol}: retcode={result.retcode}")
+    log.info("[EXITS] SL tightened for %s #%s -> %s (TP kept)", position.symbol, position.ticket, round(float(new_sl), digits))
+
+
+def validate_geometry(signal: str, price: float, stop_loss: float, take_profit: float) -> None:
+    """Reject stop/target levels that cannot ride an order at `price`.
+
+    A non-positive take profit means 'no target' (TRAIL_ONLY_MODE) and skips the target
+    check; the stop side, however, is always required.
+    """
+    signal = signal.upper()
+    if take_profit > 0:
+        ok = (signal == "BUY" and stop_loss < price < take_profit) or (signal == "SELL" and take_profit < price < stop_loss)
+    else:
+        ok = (signal == "BUY" and stop_loss < price) or (signal == "SELL" and stop_loss > price)
+    if not ok:
+        raise ValueError(f"Invalid {signal} stop/target geometry at {price} (sl={stop_loss}, tp={take_profit})")
 
 
 def execute_trade(symbol: str, signal: str, stop_loss: float, take_profit: float, risk_percent: float) -> dict[str, Any]:
@@ -111,12 +148,11 @@ def execute_trade(symbol: str, signal: str, stop_loss: float, take_profit: float
     if tick is None or account is None or account.equity <= 0:
         raise RuntimeError(f"Missing tick or account equity for {symbol}")
     price = float(tick.ask if signal == "BUY" else tick.bid)
-    if not ((signal == "BUY" and stop_loss < price < take_profit) or (signal == "SELL" and take_profit < price < stop_loss)):
-        raise ValueError(f"Invalid {signal} stop/target geometry for {symbol} at {price}")
+    validate_geometry(signal, price, float(stop_loss), float(take_profit))
     volume = calculate_position_size(symbol, stop_loss, risk_percent, float(account.equity))
     request = {"action": mt5.TRADE_ACTION_DEAL, "symbol": symbol, "volume": volume,
                "type": mt5.ORDER_TYPE_BUY if signal == "BUY" else mt5.ORDER_TYPE_SELL, "price": price,
-               "sl": float(stop_loss), "tp": float(take_profit), "deviation": 20, "magic": 260019,
+               "sl": float(stop_loss), "tp": float(take_profit), "deviation": 20, "magic": config.BOT_MAGIC,
                "comment": "AI risk-managed entry", "type_time": mt5.ORDER_TIME_GTC}
     result = _send_with_fill_fallback(request, info)
     log.info("[TRADE] %s %s vol=%s entry=%s deal=%s", signal, symbol, volume, result.price, result.deal)
